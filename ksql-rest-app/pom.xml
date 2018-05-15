@@ -15,7 +15,7 @@
 
     <properties>
         <air.main.basedir>${project.parent.basedir}</air.main.basedir>
-        <main-class>io.confluent.ksql.rest.server.KsqlRestApplication</main-class>
+        <main-class>io.confluent.ksql.rest.server.KsqlServerMain</main-class>
         <cli.skip-execute>false</cli.skip-execute>
         <cli.main-class>${main-class}</cli.main-class>
         <docker.skip-build>false</docker.skip-build>
@@ -99,28 +99,33 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/assembly/development.xml</descriptor>
-                        <descriptor>src/assembly/package.xml</descriptor>
-                        <descriptor>src/assembly/standalone.xml</descriptor>
-                    </descriptors>
-                    <archive>
-                        <manifest>
-                            <mainClass>${main-class}</mainClass>
-                        </manifest>
-                    </archive>
-                    <attach>false</attach>
-                </configuration>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
                 <executions>
                     <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
+                        <id>shade</id>
                         <goals>
-                            <goal>single</goal>
+                            <goal>shade</goal>
                         </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>${main-class}</mainClass>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
